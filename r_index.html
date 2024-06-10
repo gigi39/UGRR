@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Comments System</title>
+		<link href="style.css" rel="stylesheet" type="text/css">
+		<link href="comments.css" rel="stylesheet" type="text/css">
+	</head>
+	<body>
+<!-- #008080 -->
+	    <nav class="navtop" style="background-color:#004157;">   
+	    	<div>
+				<img id="logo" src="logo.png" alt="Logo">
+	    		<h1 style="color:#FFFF00; font-size: 48px; font-family:sans;">Review Page </h1>
+				<a href="index.html">Home</a>
+              	<a href="MuseumTimeline.html">Sites</a>
+        		<a href="SplashPage.html">More information</a>
+        		<a href="https://ochs.teamvtechnology.com/contact-us/">Contact Us</a>
+	    	</div>
+          <style> 
+            body{
+             background-image: url('/UndergroundRailroadTour/7_Harbor_as_Seen_from_Fort_Ontario/Photos/Oswego Harbor View 1855.jpg ');
+            background-repeat: no-repeat;
+            }
+            .content-home{ background-color:white;
+             width: 100vhpx;
+    		height: 75vh;
+    		border: 1px solid black;
+    		position: absolute;
+   			 left: 0;
+    		right: 0;
+    		top: 0;
+    		bottom: 0;
+    		margin: auto;
+            overflow-y: scroll;
+      
+            }
+          </style>
+	    </nav>
+        
+		<div class="content-home">
+
+			<h2>Recent Post</h2>
+
+			<p> A Review Page for all to share their thoughts and improvements!</p>
+					 <!-- <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+						 tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+						  quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+							 Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore
+							 eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+						 sunt in culpa qui officia deserunt mollit anim id est laborum.</p> -->
+
+			<div class="comments"></div>
+
+			<script>
+			const comments_page_id = 1;
+			fetch("comments.php?page_id=" + comments_page_id).then(response => response.text()).then(data => {
+				document.querySelector(".comments").innerHTML = data;
+				document.querySelectorAll(".comments .write_comment_btn, .comments .reply_comment_btn").forEach(element => {
+					element.onclick = event => {
+						event.preventDefault();
+						document.querySelectorAll(".comments .write_comment").forEach(element => element.style.display = 'none');
+						document.querySelector("div[data-comment-id='" + element.getAttribute("data-comment-id") + "']").style.display = 'block';
+						document.querySelector("div[data-comment-id='" + element.getAttribute("data-comment-id") + "'] input[name='name']").focus();
+					};
+				});
+				document.querySelectorAll(".comments .write_comment form").forEach(element => {
+					element.onsubmit = event => {
+						event.preventDefault();
+						fetch("comments.php?page_id=" + comments_page_id, {
+							method: 'POST',
+							body: new FormData(element)
+						}).then(response => response.text()).then(data => {
+							element.parentElement.innerHTML = data;
+						});
+					};
+				});
+			});
+			</script>
+
+		</div>
+      
+	</body>
+</html>

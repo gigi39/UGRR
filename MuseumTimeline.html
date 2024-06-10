@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Sites</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css' rel='stylesheet' />
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.css" type="text/css">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+      
+      header {
+        position: relative;
+        z-index: 9999;
+    }
+      .topnav a {
+      display:flex;
+      text-decoration: none;
+      color: #333;
+      padding: 10px 20px;
+      margin: auto;
+      border: 1px solid #333;
+      border-radius: 5px;
+      background-color: #fff;
+      transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+      font-size: 17px;
+      width: 50vw;
+      justify-content: center;
+  }
+
+        .topnav a:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+      #map {
+            width: 100%;
+            height: calc(100vh - 60px); /* Adjust height to leave space for header */
+            z-index: 0; /* Set the z-index to 0 to position the map below other elements */
+        }
+        #map-container {
+        position: relative; /* Keep the container relative */
+        z-index: 1; /* Lower the z-index to position it below the header */
+    }
+
+        .mapboxgl-ctrl-directions { 
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .button {
+            position: absolute;
+            bottom: 40px;
+            padding: 20px;
+            font-family: 'Times New Roman', 'Times New Roman', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 150px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        
+        @media (max-width: 600px){
+            .mapboxgl-ctrl-directions.mapboxgl-ctrl {
+                background-color: #fefefe;
+                line-height: 140%;
+                font-size: 60%;
+            }
+
+            .button {
+                position: absolute;
+                bottom: 20px;
+                font-size: 18px;
+                border-radius: 100px;
+            }
+
+            .exit-button {
+                left: 20px;
+                right: unset;
+            }
+        }
+
+        /* Modal styles */
+          .modal {
+              display: none;
+              position: fixed;
+              z-index: 999;
+              left: 0;
+              top: 0;
+              width: 100%;
+              height: 100%;
+              overflow: auto;
+              background-color: rgba(0,0,0,0.4);
+          }
+      
+      		h2{
+              font-size: 24px;
+      }
+
+          .modal-content {
+              background-color: lightgray;
+              margin: 15% auto;
+              padding: 20px;
+              border: 1px solid #888;
+              width: 80%;
+              border-radius: 10px;
+              z-index: 1000; /* Ensure modal content appears above other elements */
+              display: flex;
+              flex-direction: column;
+              align-items: flex-start; /* Align items to the start (left) */
+              font-size: 16px;
+          }
+
+          .modal-content p {
+              margin-top: 0; /* Remove default margin */
+          }
+
+            .modal-content .images {
+                display: flex;
+                flex-direction: row; /* Arrange images side by side */
+                justify-content: flex-start; /* Align images horizontally */
+                align-items: center; /* Align images vertically */
+                overflow-x: auto; /* Enable horizontal scrolling if images overflow */
+            }
+
+            .modal-content .images img {
+                margin-right: 10px; /* Add space between images */
+                max-height: 100px; /* Limit image height to prevent vertical stacking */
+            }
+         .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+           /* Add this CSS to your existing styles */
+         .museum-card img {
+                    max-width: 100%; /* Ensures the image doesn't exceed its container width */
+                    height: auto; /* Maintains aspect ratio */
+                }
+
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: white;
+            padding: 10px;
+        }
+      		@media only screen and (max-width: 480px) {
+   h2{
+    font-size: 14px;
+     word-wrap: normal;
+  }
+}
+
+
+      
+    </style>
+     <script>
+     function myFunction() {
+     var x = document.getElementById("myTopnav");
+    if (x.className === "topnav") {
+      x.className += " responsive";
+    } else {
+      x.className = "topnav";
+     }
+   }
+  </script>
+</head>
+<body>
+<header>
+    <img id="logo" src="logo.png" alt="Logo">
+    <h1>Historical Sites</h1>
+     
+  <div class="topnav" id="myTopnav">
+      <a href = "index.html"> Home </a>
+      <a href="MuseumTimeline.html"> Sites </a>
+      <a href="r_index.html">Reviews</a>
+      <a href="SplashPage.html"> More Information </a>
+      <a href="https://ochs.teamvtechnology.com/contact-us/">Contact</a>
+   </div>
+</header>
+<div id="map-container">
+    <div id="map"></div>
+</div>
+
+<main>
+    <!-- Museum cards will be dynamically added here -->
+</main>
+
+<!-- Modal for detailed museum information -->
+<div class="modal" id="myModal">
+    <div class="modal-content" id="modalContent">
+        <span class="close-btn" onclick="closeModal();">&times;</span>
+    </div>
+
+<footer>
+    <p>&copy; 2024 Amanuel Yohannes, Gerald Anakwa, and Damani Johnson. All rights reserved.</p>
+</footer>
+
+<script>
+       // Define map globally
+let map;
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Initialize Mapbox map
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZ2FuYWt3YSIsImEiOiJjbHUzNzh3OHgwdDRkMmlvM2hhMzFreXRzIn0.BW1tK8MAdI5Gb88kVgXfvQ';
+    map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [-76.2429, 43.4525], // Default center
+        zoom: 10 // Adjust the zoom level as needed
+    });
+
+    // Check if map is loaded before adding control
+    map.on('load', function () {
+        // Add geolocation control
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                const { latitude, longitude } = position.coords;
+                map.setCenter([longitude, latitude]);
+            });
+        }
+    });
+
+    // Add markers for the 29 locations in Oswego County
+    const locations = [
+        // Define the coordinates and name for each location
+       	{ coordinates: [-76.5548965, 43.4264631], name: 'Site 1, Daniel and Mariam Pease House' },
+        { coordinates: [-76.5208983, 43.4539628], name: 'Site 2, Tudor and Marie Grant House' },
+       	{ coordinates: [-76.51977,43.45616], name: 'Site 3, Nathan and Clarissa Green House' },
+        { coordinates: [-76.51985,43.45630], name: 'Site 4, John and Harriet MacKenzie House' },
+        { coordinates: [-76.51098,43.45677], name: 'Site 5, Buckhout-Jones Building' },
+        { coordinates: [-76.51061,43.45691], name: 'Site 6, Market House' },
+        { coordinates: [-76.50870,43.46473], name: 'Site 7, Harbor as seen from Fort Ontario' },
+        { coordinates: [-76.50650,43.45671], name: 'Site 8, Oswego Public Library' },
+        { coordinates: [-76.50397,43.45462], name: 'Site 9, John B. and Lydia Edwards House' },
+        { coordinates: [-76.50400,43.45702], name: 'Site 10, Hamilton and Rhoda Littlefield House' },
+        { coordinates: [-76.50041,43.45707], name: 'Site 11, Edwin W. and Charlotte Clarke House' },
+        { coordinates: [-76.23514,43.45952], name: 'Site 13, Orson Ames House' },
+        { coordinates: [-76.22846,43.45975], name: 'Site 14, Starr Clark Tin Shop' },
+        { coordinates: [-76.16218,43.42035], name: 'Site 15, Asa and Caroline Wing House' },
+        { coordinates: [-76.120916, 43.571209], name: 'Site 16, Ard H. Stevens-George Washington Store' },
+        { coordinates: [-76.100721, 43.293864], name: 'Site 17, Site of Toll Booth in Jerry Henry\'s Rescue' },
+        { coordinates: [-76.274838, 43.255464], name: 'Site 18, Hiram and Lucy Gilbert House' },
+        { coordinates: [-76.277099, 43.250912], name: 'Site 19, Amos and Hannah Mason House' },
+        { coordinates: [-76.303712, 43.224372], name: 'Site 20, Stephen and Rhoda Griffith House' },
+        { coordinates: [-76.293950, 43.243233], name: 'Site 21, Gilbert Mills Cemetery' },
+        { coordinates: [-76.33839,43.33839], name: 'Site 22, Bristol Hill Church' },
+        { coordinates: [-76.3776757501463, 43.38655094317094], name: 'Site 25, Mt. Pleasant Cemetery' },
+        { coordinates: [-76.35982,43.35997], name: 'Site 23, William Baldwin House' },
+        { coordinates: [-76.57926,43.32023], name: 'Site 24, Silas Brewster House' },
+		{ coordinates: [-76.47165,43.46382], name: 'Site 25, Cemetery and site of Sidney and Olive Jackson Clarke House' }
+      	// Add other locations here...
+    ];
+
+  locations.forEach(location => {
+        const marker = new mapboxgl.Marker()
+            .setLngLat(location.coordinates)
+            .setPopup(new mapboxgl.Popup().setHTML(`<h3>${location.name}</h3>`))
+            .addTo(map);
+
+        // Add click event listener to the marker
+        marker.getElement().addEventListener('click', function () {
+            // Set the destination for directions
+            map.getSource('single-point').setData({
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: location.coordinates
+                        },
+                        properties: {
+                            title: location.name
+                        }
+                    }
+                ]
+            });
+        });
+    });
+
+    // Geolocation control
+    var geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true
+    });
+
+    // Add error handling for geolocation
+    geolocate.on('error', function (error) {
+        console.error('Geolocation error:', error);
+        alert('Unable to retrieve your location. Please ensure location services are enabled and try again.');
+    });
+
+    map.addControl(geolocate);
+
+    const bounds = [
+        [-78, 41],
+        [-74, 45]
+    ];
+});
+
+    // Museum cards and modals
+    document.addEventListener('DOMContentLoaded', function () {
+        const museums = [
+            {
+                name: '1.Daniel and Mariam Pease House',
+                image: 'UndergroundRailroadTour/1_Daniel_and_Mariam_Pease_House/Photos/1 Pease House.jpg',
+                image2: 'UndergroundRailroadTour/1_Daniel_and_Mariam_Pease_House/Photos/2 Pease House Historic Marker.jpg',
+                description: 'Daniel and Miriam Pease House The Pease family built their house over some time from 1816 to 1826. Except for the years from 1855 to 1920, it has always been owned by the members of the Pease family. It is one of the best examples of the federal style in Oswego County.The Pease family were early advocates of abolitionism. <br><br> In 1837, Daniel, Miriam, and their daughter, Nancy, all signed a petition to Congress, praying for the abolition of slavery in the District of Columbia.  The next year, Daniel Pease signed another petition, requesting that political parties of Oswego County support only congressional candidates, who were in favor of the “immediate abolition of slavery in the District of Columbia,” and who favored the right to petition.Family tradition, reinforced in newspaper articles in the late 19th and early 20th centuries, emphasizes using the Pease house and farm as a station on the underground railroad. One of their son’s obituaries notes that “Daniel Pease was an abolitionist, and in the agitation that preceded the Civil War days, pioneer home was part of the underground route by which fugitive slaves were us into Canada. <br><br> These were stirring days in Oswego town, and Daniel Pease numbered among his personal friends, Gerrit Smith, who was prominent as an abolitionist.“ Another obituary noted that “Pease has spent his entire life in the house in which he died which was built by his parents, Daniel and Miriam Pease, some 90 years ago, at which time it was considered one of the largest and most pretentious dwellings in the town. <br><br>In the early days of the abolition movement, before Abraham Lincoln freed the slaves, this house was one of the principal stations on the “underground railroad,” along which runaway slaves were spirited from the South to Canada. Hundreds of escaped negroes are said to have been fed and sheltered in the old barns on the place.”Best known of all the underground railroad stations in Oswego County because of the powerful, oral traditions that have been handed down through six generations of the Pease family. <br><br> The Daniel and Miriam Pease’s house stands today as a tribute to Daniel’s fine craftsmanship and sturdy construction, as well as to the families moral commitment to the abolition of slavery. ',
+                address: '261 Cemetery Road, Oswego NY 13126.',
+                date: new Date('2022-01-01'),
+                Note: ' This is a private home and not open to the public. Drive by only.',
+
+            },
+            {
+                name: '2.Tudor and Marie Grant House',
+                image: 'UndergroundRailroadTour/2_Tudor_and_Marie_Grant_House/photos/Site of Tudor Grant House.jpg',
+                image2: 'UndergroundRailroadTour/2_Tudor_and_Marie_Grant_House/photos/George Franklin Grant_s Golf Tee Patent.jpg',
+                image3: 'UndergroundRailroadTour/2_Tudor_and_Marie_Grant_House/photos/Tudor Grant_s son George Franklin Grant.jpg',
+                description: 'Site of Tudor E. and Marie Grant House Tudor Grant, born enslaved in Maryland about 1800, came to Oswego in 1832 and became an outspoken abolitionist, businessman, and African American leader. <br><br> From the earliest days in Oswego, he was active in the anti-slavery organizations. He gave a talk at one of Oswego County’s earliest anti-slavery meetings, held in Mexico in July 1936. In August he became an agent for The Colored American, selling subscriptions to this abolitionist newspaper. In 1838, he presented a resolution to the Oswego County Anti-Slavery Society meeting in Oswego. <br><br> “Resolved,” he argued, “That we ought to be ready to sacrifice everything rather than in such an hour as this to shrink from duty. Life without liberty is little worth - and if we cannot enjoy the privilege of speaking freely, and of writing freely, we ought, like Lovejoy (Elijah Lovejoy, the Illinois abolitionist editor who had just been killed), freely to die if necessary.” Mr. Grant had been a “chattel” himself, reported the minutes of the meeting, “although he spoke as though he felt himself to be a man, having always belonged to the race (of men).” <br><br> At a meeting of the Oswego County Anti-Slavery Society on June 21, 1838, Grant volunteered (along with John Gridley and Sidney Clark) to be part of a Vigilance Committee for the City of Oswego, to organize local efforts to help fugitives from slavery.As a well-known abolitionist, Tudor E. Grant also signed anti-slavery petitions. <br><br> In 1838, he and more than fifty other male citizens of Oswego (both black and white) asked Congress not to admit any new slave states to the Union. In 1840, he signed another opposing the admission of Texas as a slave state. He also protested discrimination in Oswego schools, who requested that his children withdraw because they would offend the white parents.<br><br> One of his sons, George Franklin Grant was apprenticed to a dentist in Oswego, went on to Harvard Dentist School, became an innovator in cleft palate treatment, the inventor of the golf tee, and the first African American professor at Harvard. After the Fugitive Slave Act was passed in 1850, Tudor E. Grant continued his activity in the Underground Railroad movement and anti-slavery activities, though there were signs that he became more cautious about dealing with the government.At various times, Tudor Grant had barber shops in various locations, including the Buckhout-Jones building downtown. He also had a business doing “fancy dying’ of silk fabrics. As a barber, he was well positioned to hear news from both blacks and whites, and he very likely helped other self-emancipated slaves to either find work in Oswego or escape to Canada. He was undeniably one of the black elite, well-known to all in the community, and a leading abolitionist.',
+                address: '134 W. Bridge St., Oswego NY 13126',
+                date: new Date('2022-01-01'),
+                Note: 'This is currently an empty lot. But Tudor Grant is too important to the history of abolitionism in Oswego to not acknowledge him with a stop at one of the home sites he owned on the main route through the city.',
+            },
+            {
+                name: '3.Nathan and Clarissa Green House',
+                image: 'UndergroundRailroadTour/3_Nathan_and_Clarissa_Green_House/Photos/Green House .jpg',
+                description: 'Nathan and Clarissa Green were some of the many African Americans who came to Central New York as fugitives from slavery. <br> According to the 1855 census, Nathan, 33, and his wife, Clarissa, 23, and their four-year-old daughter Caroline came to Oswego in 1836. In 1840 they had a son also named Nathan, and later three more children, Augustus, Harriet, and John. The 1865 census noted that the parents had borne 10 children in all. <br><br> In 1947, Green was one of 19 Oswego County African-Americans to receive a grant of free land from Smith in Hamilton County. However, two years later, Nathan Green bought his lot on W. 8th St. from Garrett and Ann Smith. He moved it next door to John McKenzie, another African-American, who has been linked specifically to Freedom Trail work. Although we have no evidence that the Greens ever participated directly in underground railroad activities, circumstantial evidence certainly suggests the possibility. <br><br> We know that Nathan Green had abolitionist sympathies; in 1840, he signed an anti-slavery petition. They were one of about 15 black families who lived in the city, many of whom were active abolitionists and/or fugitives themselves. Nathan’s occupation was listed in censuses as cook, seaman, or steamboat cook. As such his work as a seaman and cook would have made it relatively easy for him to assist freedom seekers.Nathan Green died in 1873 and is buried in Riverside Cemetery in Scriba.',
+                address: '98 W. 8th St., Oswego NY 13126.',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '4.John and Harriet MacKenzie House',
+                image: 'UndergroundRailroadTour/4_John_and_Harriet_MacKenzie_House/Photos/1 McKenzie House.jpg',
+                description: 'The John and Harriet McKenzie house is directly associated with the Freedom Trail and with African-American life in central New York. John McKenzie was a well-known cartman in Oswego, perhaps the first black property owner in the city. Born in Georgia, he reportedly bought freedom from slavery for himself, his wife, and his mother, Nelly. While we have no direct evidence that the McKenzies sheltered fugitives at this house, local oral history tradition recorded in a 1907 speech given for the DAR suggested that John McKenzie was part of the network of African-Americans, who assisted freedom seekers. <br><br> According to the 1855 census, John and Harriet came to Oswego County in 1842 when they were about 28 and 29 years old. John’s mother Nelly joined them about 1845 when she would have been about 50 years old. They purchased and lived in this house from 1848 to 1857 - the height of Underground Railroad activities after the Fugitive Slave Law was passed in 1850. He later built a house on W. 7th St.As a porter and cartman, John McKenzie carried people and goods around the city. As his obituary noted, he “was for years engaged as a Carter, in the city, and by industry and careful attention to business, won the esteem and confidence of the businessman, for whom he did work, and that of all of his acquaintances as well.“ He would have been regularly seen at train stations, docks, and on the city streets. Apparently, among the people he carried were freedom seekers headed toward Canada. His obituary hinted at the work he did in the underground railroad but did not state it overtly.',
+                address: '96 W. 8th St., Oswego NY 13126.',
+                date: new Date('2022-01-01'),
+                Note: 'This is a drive-by, not open to the public. It is right next door to a home owned by the McKenzies, another African American family associated with the Underground Railroad.'
+
+            },
+            {
+                name: '5.Buckhout-Jones Building',
+                image: 'UndergroundRailroadTour/5_Buckhout-Jones_Building/Photos/Buckhout Building.jpg',
+                image2: 'UndergroundRailroadTour/5_Buckhout-Jones_Building/Photos/1 Buckhout-Jones Building today.jpg',
+                image3: 'UndergroundRailroadTour/5_Buckhout-Jones_Building/Photos/Buckhout-Jones Building circa 1976.jpg',
+                description: 'The Buckhout-Jones building is one of the most significant commercial buildings associated with the underground railroad. Located on the most important intersection of Oswego early commercial district, on Bridge St half a block from the Oswego River and between W. First St. and Market St., it was built, financed, and occupied by abolitionists. The land speculators who originally owned the lots, Gerrit Smith, Alvin Bronson, and Lucius Crocker, and the first owners who built the building, Abram Buckhout and Erastus Jones were financiers, businessmen, and abolitionists in Oswego. Abram Buckhout (1813-1884) owned the west half of the Buckout Jones building from 1852 until 1868. The son of Buckhout"s business partner described Abram as an “Ardent abolitionist, but (he) was very careful not to disclose the fact as it might react on his business and family. According to oral history, the two partners secreted slaves in the Buckhout barn on W. 5th St. Road. It is documented that Buckhout signed a petition to Congress dated March 12, 1838, which asked the “honorable body not to admit any new state to this union, whose constitution tolerates domestic slavery”.<br><br> Littlefield, real estate developer, and contractor for the Buckhout-Jones building, was also an abolitionist and freedom trail supporter. His home on the E. Oneida St. is listed on the national registered as a waystation on the Underground Railroad. Charles Smith, a former slave, from Baltimore, Maryland, was a barber and tenant in the Buckhout-Jones building. Smith escaped from his owner and arrived in Oswego in 1839 via the underground railroad. He went to Canada, and for several years sailed on the Great Lakes. Eventually, he returned to Oswego and started a barbershop in the Buckhout-Jones building. Smith"s obituary stated that he was “an honest, industrious and economical man and a good citizen.”<br><br>Tudor E. Grant, another fugitive slave from Maryland, moved his barbershop into the Buckhout-Jones building in 1857. He was a committed abolitionist and an outspoken opponent of discrimination in all forms. Grant signed petitions, joined the City of Oswego Vigilance Committee, was a member of the Oswego Public Library, and enrolled his children in public schools despite discrimination from teachers and parents of white children.',
+                address: '5-13 W. Bridge St., Oswego NY 13126.',
+                date: new Date('2022-01-01'),
+                Note: ' This has several businesses in it.'
+            },
+            {
+                name: '6.Market House',
+                image: 'UndergroundRailroadTour/6_Market_House/Photos/Market House 1976.jpg',
+                image2: 'UndergroundRailroadTour/6_Market_House/Photos/Market House also called Old City Hall.jpg',
+                image3: 'UndergroundRailroadTour/6_Market_House/Photos/Market House as seen from the Bridge in 1870_s.jpg',
+                image4: 'UndergroundRailroadTour/6_Market_House/Photos/Market House Music Hall-1976.jpg',
+                image5: 'UndergroundRailroadTour/6_Market_House/Photos/Market House.jpg',
+                image6: 'UndergroundRailroadTour/6_Market_House/Photos/Frederick Douglass.jpg',
+                image7: 'UndergroundRailroadTour/6_Market_House/Photos/Gerrit Smith 1840s.jpg',
+                image8: 'UndergroundRailroadTour/6_Market_House/Photos/Samuel Ringgold Ward.jpg',
+                description: 'The Oswego Market House built in 1836 is a late Federal-style structure built by the Village of Oswego as a Market House and used after 1848, when the City was incorporated, as City Hall, a jail, and offices. In 1852, the National Liberty Party and local abolitionists met here for their annual political convention. They nominated Gerrit Smith, renowned Central New York abolitionist, and Samuel Ringgold Ward, an African American minister, formerly enslaved, for President and Vice President of the U.S. It was the first time that an African American had been nominated to one of the highest offices in the land. <br><br> The Oswego Convention was attended by Asa and Caroline Wing, participants in the Underground Railroad from Colosse NY, and other local anti-slavery group members. Samuel R. Ward (1817-1866) was born in Maryland to parents who escaped with him in 1820 to New Jersey and later relocated to NY. He became, by age 22, a teacher, worked on a newspaper, and had been licensed to preach by the New York Congregational (General) Association. <br><br> He was in demand as a speaker for the New York Anti-Slavery Society and owned and edited newspapers in Cortland and Syracuse in addition to his ministerial duties.Frederick Douglas considered Ward to be a superior orator and thinker to himself. Samuel R. Ward visited Oswego County many times in his anti-slavery crusade culminating in his nomination to the vice-presidency at the Oswego Market House.The Market House is on the National Register of Historic Places. In the rear on the ground floor, you can still see the bars on the windows of the original city jail.',
+                address: '159 Water St., Oswego NY 13126.',
+                date: new Date('2022-01-01'),
+                Note: 'Open to the public as a restaurant and bar.'
+
+            },
+            {
+                name: '7. Harbor as seen from Fort Ontario',
+                image: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/1 Fort Ontario at the end of E. 4th St.jpg',
+                image2: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/2 Fort Ontario entrance to parking lot.jpg',
+                image3: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/3 The Harbor as seen from the Fort Ontario radio tower location.jpg',
+                image4: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/4 1850_s Reese Lithograph of the Harbor.jpg',
+                image5: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/5 View of Grain Elevators East side before 1853.jpg',
+                image6: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/6 Oswego Canal Early picture.jpg',
+                image7: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/7 Oswego Harbor Mid 1800s.jpg',
+                image8: 'UndergroundRailroadTour/7_Harbor_as_seen_from_Fort_Ontario/Photos/8 Oswego Harbor looking northeast down river toward lake.jpg',
+                description: 'Ships took many freedom seekers from this harbor to Canada. As you can see from the early lithographs of the harbor, there was a bevy of activity as tall sailing ships crowded the harbor, and canal boats docked along the river to transfer loads to and from the sailing vessels. Lining both sides of the river and along the lake, factories, commercial buildings, and mills were tightly packed to provide easy access to the docks.To get a sense of the harbor, you can go to Fort Ontario at the end of East Fourth Street, park in the parking lot, and walk around the left side of the old stone fort (which was beginning to be rebuilt in stone in the 1839-1868 period). When you reach the radio tower on the bluff, you will have a view of the harbor, though much changed because of commercial port activities and dock build-outs, especially on the east side. If you just want a view of the lake, drive through the Fort parking lot to a driveway at the end, and proceed to an overlook. Kingston, Ontario in Canada, the destination of many freedom seekers, is about 50 miles away.',
+                address: '1 E. 4th St., Oswego NY 13126.',
+                Note: 'No notes are necessary for this address.',              
+                date: new Date('2022-01-01'),
+            },
+            {
+                name: '8. Oswego Public Library',
+                image: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/11. Uncle Tom_s Cabin.jpg',
+                image2: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/4. Map of 1850_s Oswego.jpg',
+                image3: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/6. History Panel 1 on Lower level.jpg',
+                image4: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/7. History Panel 2 in the Lower Level.jpg',
+                image5: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/8. History Panel 3 in Lower Level.jpg',
+                image6: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/9. Freedom Trail Map of Underground Railroad Sites in Oswego County.jpg',
+                image7: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/10. Display Case with Library Register and Uncle Tom_s Cabin.jpg',
+                image8: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/1 Oswego Public Library.jpg',
+                image9: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/1a Oswego Public Library.jpg',
+                image10: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/2. Library circa 1966.jpg',
+                image11: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/5. Charcoal Portrait of Gerrit Smith.jpg',
+                image12: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/12. Display Case with items of Oswego History on Lower Level.jpg',
+                image13: 'UndergroundRailroadTour/8_Oswego_Public_Library/Photos/14. Library circa 1920s.jpg',
+                description: 'Gerrit Smith of Peterboro, New York, was the most outstanding abolitionist in upstate New York before the Civil War. He was a wealthy businessman and landowner with huge tracts of property in Oswego County. <br><br>In 1853 he donated funds to establish the Oswego Public Library.  The stipulations of the gift included a site on the east side of the Oswego River (where most of his property was located), his insistence that the privileges and benefits of the library should be conferred upon all persons without regard to race, color, or condition and that his name not be associated with the library. <br><br> In April 1854, the library was incorporated and in 1855 it was constructed with his donation of $25,000.The library building, erected by the architectural firm of Hewes and Rose of Syracuse, is built in the “Norman” style, with towers, corbels, and crenelated battlements, reflecting those of a medieval castle.Now listed on the National Register of Historic Places, the building is the oldest library in New York State to serve continuously as a library. <br><br> It is the only Gerrit Smith building known today that survives to symbolize Smith’s philanthropy and his philosophy of freedom for the black race. His gift to the people of Oswego was dependent on their acceptance of an equal rights policy, which would be extended to all library patrons without regard to race, creed, or condition. <br><br> Underground railroad research materials contained in the library and available on request include Oswego City directories, journals published by the Oswego County Historical Society (many issues have articles on the underground railroad), microfilmed newspapers, including the Oswego Palladium from 1837 to the 1990s, several Oswego County local histories, biographical material on Gerrit Smith, and information on the founding of the library. Items in displays relating to the history of Oswego and the library include the following:An original oil painting of Gerrit Smith by artist A. Pease hangs in the main room of the library on a wall just to the right of the circulation desk. It is assumed to be by Alonzo Pease (1820–1881) whose uncle was the first settler of Oberlin, Ohio. Gerrit Smith was a patron of Oberlin College, which was the first college to admit both blacks and women, in addition to white men.In the middle of the main floor to the right of the elevator is an 1851 map of pre-Civil War, Oswego. In the rear right-hand corner of the main floor is a charcoal portrait of Gerrit Smith. The lower level of the library has a history exhibit including panels describing the formation of the library, and copies of the original registered patrons. There are two display cases with artifacts, Including a first edition of “Uncle Tom’s Cabin” by Harriet Beecher Stowe. Although we know that these panels are not readable in the photos, we invite you to come into the library to examine them.',
+                address: '120 E. 2nd St, Oswego NY 13126.',
+                date: new Date('2022-01-01'),
+                Note: 'Hours of operation: Monday through Thursday - 9:00 am to 8:00 pm Friday and Saturday - 9:00 am to 5:00 pm'
+            },
+            {
+                name: '9. John B. and Lydia Edwards House',
+                image: 'UndergroundRailroadTour/9_John_B._and_Lydia_Edwards_House/Photos/Edwards House.jpg',
+                image2: 'UndergroundRailroadTour/9_John_B._and_Lydia_Edwards_House/Photos/John B. Edwards.jpg',
+                description: 'The John B Edwards house was a well-documented way station on the underground railroad. Built in 1834, Edwards purchased the house in 1836 and continued to live in it through the Civil War. It is a Greek revival style typical of the period, and this neighborhood of middle and upper-class residences was built on property formerly purchased by Gerrit Smith from the state in 1827. <br><br> In the era of underground railroad activity, from 1834 to 1865, this building was surrounded by open fields on all three sides. John Edwards, born in 1802, was a construction superintendent who worked on the Erie Canal and arrived in Oswego in 1824 to supervise the construction of the Oswego Canal Company’s hydraulic canal which provided power to numerous mills on the east side of the Oswego River. <br><br> In 1827, Garrett Smith, the capitalist and abolitionist from Peterborough New York, purchased at auction, a large parcel of land which surrounded Fort Ontario. He met Edwards, was impressed with his vision, and hired him to operate his best business ventures in Oswego. <br><br> Edwards worked as Smith’s land agent until he died and for another 20 years after that for the heirs. He was significant in politics, the development of public utilities, and many organizations in the city of Oswego and was one of the incorporators of the Oswego Public Library for Gerrit Smith. Privately, John B Edwards organized the Oswego end of the freedom trail and the final exit into Canada. <br><br> When the Oswego Canal was too conspicuous for travel by fugitive slaves, the overland route from Utica or Syracuse to Colosse to Mexico to Oswego was substituted. John B. Edwards or Edwin W. Clark often made the final decisions about local housing and ship departures; all of this is documented in the private correspondence between Edwards and Smith. They housed slaves in their own homes and documented other way stations, like the Hamilton Littlefield house. <br><br> He listed a number of runaways that he had placed on steamboats to Canada. In 1849, John and Lydia Edwards entertained S.R. Ward, a fugitive slave, who addressed the annual abolitionist county convention in Fulton, NY. In 1852, when the Liberty Party held its national political convention in Oswego, abolitionist orator Asa Wing and his wife Caroline from Colosse stayed in the Edwards home.',
+                address: '144 E. Third St., Oswego NY 13126.',
+                date: new Date('2022-01-01'),
+                Note: 'This is a drive-by, not open to the public.Notice how close this house is to the site chosen for the Oswego Public Library, which John Edwards was key to setting up.'
+            },
+            {
+                name: '10. Hamilton and Rhoda Littlefield House',
+                image: 'UndergroundRailroadTour/10_Hamilton_and_Rhoda_Littlefield_House/Photos/2 Littlefield House.jpg',
+                image2: 'UndergroundRailroadTour/10_Hamilton_and_Rhoda_Littlefield_House/Photos/1 Littlefield House.jpg',
+                image3: 'UndergroundRailroadTour/10_Hamilton_and_Rhoda_Littlefield_House/Photos/Hamilton Littlefield.jpg',
+                image4: 'UndergroundRailroadTour/10_Hamilton_and_Rhoda_Littlefield_House/Photos/Rhoda Littlefield.jpg',
+                description: 'The Hamilton and Rhoda Littlefield house was a way station on the Freedom Trail. The property at the corner of East Fourth and Oneida Street in Oswego retains some of its architectural integrity. Documentation for the use of this house as a waystation, as well as Littlefield’s long-term abolitionist activity, includes personal letters written by John B Edwards, contemporary published accounts of anti-slavery meetings, anti-slavery petitions, and oral stories that were later recorded in print. Hamilton Littlefield, born 1804, moved to Oswego in 1836 where Littlefield began a career trading in lumber, real estate, speculation, and farming. He built many of Oswego‘s main downtown business blocks. <br><br> His career as an abolitionist is well documented. He attended the first meeting of the New York State anti-slavery Society in Utica, New York, in 1836, along with 26 other Oswego County delegates, including Edwin W Clark, Tudor E Grant, T. C. Baker, Sylvester Brown, and Dr. Deodatus Clarke. In 1939, he helped organize a political abolitionist convention in Fulton, New York. From 1839 to 42, he was an officer and member of the executive committee of the Oswego County anti-slavery society. <br><br> Littlefield also signed at least two anti-slavery petitions, one requesting the abolition of slavery and the slave trade in the District of Columbia and another opposing the admission of new slave states to the union. His anti-slavery commitment, combined with his lumber trade in his farming, gave him a unique opportunity to assist freedom seekers. They could rest at his house or farm, and then travel on a lumber ship, often in the company of a Canadian crew, to Ontario. <br><br> In 1853, John Edwards wrote that he had taken one fugitive “to Hamilton Littlefield’s for housing.”Littlefield himself talked of a party of 15 or 16 runaways, who arrived and were hidden at the edge of the city in some woods. He and his coworkers took lanterns, found the group, and smuggled them into his cellar with caution for that night. The secrecy was necessary because Mr. Littlefield had, as his guest that night, the manager of one of his farms who had been in his employ but a short time, and it was not known where his sympathies lay. After several days, Mr. Littlefield sent one of his vessels down the lake to a point where the fugitives could be loaded during the night and carried to Canada. <br><br> Renovation of the house in 2000 revealed a cache of abolitionist writings, hidden between the kitchen ceiling and the floor of the room above. This material included a printed speech of Gerrit Smith in the Kansas meeting, at the Capitol in Albany, on March 13, 1856, and a copy of Frederick Douglass‘s Paper. (November 7, 1856), and a manuscript account book 1840-42.',
+                address: '44 E. Oneida St., Oswego NY 13126',
+                date: new Date('2022-01-01'),
+                Note: 'This is a private home and not open to the public. Drive by only.'
+            },
+            {
+                name: '11. Edwin W. and Charlotte Clarke House',
+                image: 'UndergroundRailroadTour/11_Edwin_W._and_Charlotte_Clarke_House/Photos/1 Clarke House.jpg',
+                image2: 'Underground Railroad Tour/11_Edwin_W._and_Charlotte_Clarke_House/Photos/Clarke House c 1877.jpg',
+                description: 'Edwin W. Clarke was one of Oswego’s most outspoken abolitionists. Brought to Oswego as a child, he obtained a law degree in 1828 and in that same year was appointed the first clerk of the village of Oswego, a post he held until April 20, 1833.  He was reappointed in July 1833 and continued in office until Nov. 13, 1838. From an early age, Clarke was an ardent supporter of the anti-slavery movement. <br><br> On Oct. 8, 1835, he became one of the founders of the Oswego County Anti-Slavery Society. He later served as the society’s president. He and 22 other abolitionists signed an open letter on Oct. 26, 1838, urging voters not to support candidates who failed to voice open opposition to the institution of slavery. In 1841, Clarke spearheaded the campaign to free James Watkins Seward, a freeborn African American, from jail in New Orleans.For several years he was associated with The Liberty Press, an abolitionist newspaper located in Utica. He was its editor in 1844-1845. <br><br>One of Clarke’s articles, “The Act of 1793,” appeared on the front page of the newspaper on Jan. 31, 1843.  In the article, he discussed the current status of slavery and the impossibility of enslaved persons to obtain liberty without fleeing from their owners. The Clarke family owned a large farm on the outskirts of the village and hid terrified runaways there until they could put them on a ship headed for Canada. While accurate figures are unavailable, it has been estimated that the Clarkes assisted more than 120 slaves to elude their would-be captors and flee to Canada. <br><br> In 1851, Clarke was to play an important role in the famous Jerry Rescue. Jerry McHenry’s former master had him arrested in Syracuse on Oct. 1, 1851, under the provisions of the 1850 Fugitive Slave Act. A group of abolitionists in the city for a convention forcibly removed him from his cell in the Syracuse police station and secreted him to Oswego. Clarke took him to his farm and hid him for several days until he could book passage for him on a Canada-bound ship.',
+                address: '80 E. Mohawk St., Oswego NY 13126',
+                date: new Date('2022-01-01'),
+                Note: 'This is a private home and not open to the public. Drive by only.'
+            },
+            {
+                name: '12. Cemetery and site of Sidney and Olive Jackson Clarke House',
+                image: 'UndergroundRailroadTour/12_Cemetery_and_site_of_Sidney_and_Olive_Jackson_Clarke_House/Photos/3 Clarke Cemetery going through entrance gate.jpg,',
+                image2: 'UndergroundRailroadTour/12_Cemetery_and_site_of_Sidney_and_Olive_Jackson_Clarke_House/Photos/2 Clarke Cemetery across from Lowe_s parking lot.jpg,',
+                image3: 'UndergroundRailroadTour/12_Cemetery_and_site_of_Sidney_and_Olive_Jackson_Clarke_House/Photos/4 Clarke Cemetery other stone.jpg,',
+                image4: 'UndergroundRailroadTour/12_Cemetery_and_site_of_Sidney_and_Olive_Jackson_Clarke_House/Photos/1 Clarke Cemetery coming down road from Rt 104.jpg,',
+                image5: 'UndergroundRailroadTour/12_Cemetery_and_site_of_Sidney_and_Olive_Jackson_Clarke_House/Photos/5 Clarke Cemetery stone of Nancy Clark.jpg,',
+                description: 'This site marks the family home of one of the first settlers in Oswego, Doctor Deodatus Clarke, and his wife Nancy. Purchasing 260 acres in 1806 from the federal government, the Clarkes carved a clearing out of the forest and built a double log house which eventually became a large farm. <br><br> The whole family were abolitionists and involved in the Underground Railroad. Son Sidney Clarke and his wife Olive inherited the property and were the main hosts of the fugitives. (According to their son, his mother’s family were also abolitionists.) Another son, Edwin W. Clarke became a lawyer and the first village clerk for the Village of Oswego and he lived in the city at the corner of E. Mohawk and Seventh St. He was a prominent and visible leader and organizer of the movement. <br><br> Grandson John Jackson Clarke (son of Sidney and Olive) wrote a memoir in 1931 noting that “before the passage of the Fugitive Slave Act in 1850, which declared the aiding or sheltering of fugitives slaves was a crime, secret measures were not necessary so that the operations so characterized all occurred during the decade that followed the adoption of this measure.”He described the organization of abolitionists who hid freedom seekers during the day, usually in their barns and outbuildings, and during the hours of darkness, passed them from one station to the other until they reached Canada and freedom. It was not hard, he said, for his father to find passage for the fugitives with ships that were docked in the harbor.As many as 125 freedom seekers stayed at the Clarke house. One of the most famous was “Jerry” Henry, whose escape from a jail in Syracuse and pathway to freedom through Onondaga and Oswego County is legendary and was an example of how efficiently the anti-slavery groups could mobilize and move people secretly through the routes to ships bound for Canada. <br><br> The house was torn down in 1863, but the stone wall surrounded the family cemetery and some evidence of the cellar and well were still visible in the 1930’s, according to John Jackson Clarke.When Widewaters Group bought the property in 2004 to construct a Lowe’s store and parking lot, they were persuaded by local historians to move the cemetery 500 feet and reconstruct the stone wall around it, preserving and reinstalling the circa 1895 iron gate and putting the headstones in their original orientation. Unfortunately, few stones are still readable.',
+                address: 'North of Route 104 East, West of City Line Road, and across from the parking lot on the driveway into Lowe’s.',
+                date: new Date('2022-01-01'),
+                Note: 'No notes are necessary for this address.'
+            },
+            {
+                name: '13. Orson Ames House',
+                image: 'UndergroundRailroadTour/13_Orson_Ames_House/photos/Orson Ames House.jpg',
+                description: 'The Orson Ames House is a modest single-story frame house, built about 1830, in the Village of Mexico. The house sits across from the Mexico High School. Much of it has been remodeled, but the framework of the post-and-beam structure still stands.On Oct. 1, 1851, former slaves and abolitionists broke William “Jerry” Henry out of jail in Syracuse, where he was being held under arrest for violating the Fugitive Slave Act. After the jailbreak, Henry traveled hidden in a meat wagon to Mexico, where he was taken in by Ames and his wife, Amy.Ames sheltered famous fugitive Jerry for one night on October 5, 1851. <br><br> Jerry was said to be hidden in a hollowed-out area in the hay in the Ames barn. Mrs Ames would have brought him food in a basket as if she were going to the barn to care for the animals. Due to the prominent location of the house, Jerry was moved to a location where he was less likely to be found by slave hunters the next day. Orson Ames signed Oswego County first anti-slavery petition in 1835, and three years later volunteered to take part in the Mexico Vigilance Committee, which provided runaway slaves with food, clothing, and transportation.By rescuing Henry in Syracuse, white and black abolitionists successfully challenged the ability of the federal government to enforce the Fugitive Slave Act of 1850 and help make Central New York a haven for freedom seekers. <br><br> Ames died on Feb. 16, 1867. He, his wife, and one of their sons are buried in the Mexico village cemetery. According to Dr. Judith Wellman, a former State University College at Oswego history professor and director of Historical New York Research Associates, the Ames house is the only Oswego County structure remaining from the Jerry Rescue.',
+                address: '3339 Main St., Mexico NY 13114',
+                date: new Date('2022-01-01'),
+                Note: 'This is a private home, not open to the public. Drive by only.'
+            },
+            {
+                name: '14. Starr Clark Tin Shop',
+                image: 'UndergroundRailroadTour/14_Starr_Clark_Tin_Shop/photos/Starr Clark Tin Shop.jpg',
+                description: 'The Starr Clark Tin Shop is one of the few Underground Railroad stations in New York that is open to the public. Starr Clark and his wife, Harriet, were abolitionists who sheltered runaway slaves in his two-story Tin Shop shop as early as 1837 - 24 years before the Civil War began.The Clarks moved to Mexico in 1832. Three years later, Clark sent a petition to Congress asking it to immediately abolish slavery in the nation capital. Starr Clark committed himself to assisting fugitive slaves. From his home and adjoining store in the Tin Shop, Clark helped to organize Mexico first antislavery society. <br><br> In 1835 he wrote the first anti-slavery petition sent from Mexico. In 1838, he was a member of the Mexico Vigilance Committee, which helped freedom seekers. In one case, well-documented in the newspaper The Friend of Man, assisted a runaway named George to go to Canada.When a free black man, James Watkins Seward, was imprisoned in New Orleans, Clark wrote to the New York Governor pleading with him to contact the Governor of Louisiana to demand the man release. The Clarks welcomed freedom seekers and provided housing for them either in the Starr Clark Tin Shop, their own home, or in the homes of other abolitionist families. Clark was known as an Underground Railroad Stationmaster, the person who arranged shelter for any fugitive slaves that came to Mexico for forwarding "the goods", and provided transportation to the next station.<br> The Starr Clark Tin Shop is located in the center of the village of Mexico along three major transportation routes, making it valuable for Underground Railroad activities. <br><br>Underground Railroad researcher Judy Wellman believes Clark was the anonymous author of an 1837 newspaper article that said: "It is my practice whenever a colored man comes into our village to go and invite him to my house and make him free at the same table with my family, let him be bond or free."Evidence to support the Clarks anti-slavery position is found in signed petitions, minutes of the Oswego County Anti-Slavery Society, correspondence with other abolitionists, the published account of the fugitive "George", obituaries, and accounts written by direct descendants. In 2001, the Starr Clark tin shop was placed on the National Register of Historic Places. It is one of 10 sites in New York that the National Parks Service included in its "Network to Freedom" - a program designed to promote and preserve sites that tell the story of the Underground Railroad Today it is a museum: it is the original building dating to 1827; a working Tin Shop; a Mercantile; a Local History museum and of course an Underground Railroad Museum.',
+                address: '3250 Main St., Mexico NY 13114',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '15. Asa and Caroline Wing House',
+                image: 'UndergroundRailroadTour/15_Asa_and_Caroline_Wing_House/Photos/Asa Wing Home about 1976.jpg',
+                description: 'This was the home of the locally and nationally known orator, Asa S Wing. Asa and Caroline Wing purchased the home in 1847. It is a well-documented location used in harboring fugitive slaves. <br>Asa promoted equal rights based on a biblical belief in equality. On Christmas Eve 1851, this family hosted Mr. Thompson, his wife, and five daughters “to save them from the kidnappers”.Wing started abolition speaking in the area, then after some time did speaking engagements in other parts of the Northeast. Through Wings diary, one can establish a clear picture of life before 1855 for Mexican residents and abolitionists. Asa Wing was an exceptional speaker. Wing had a throat ailment that made his public speaking voice only a whisper. He was so eloquent in speaking that people would strain to hear his words. <br><br>Asa S Wing died March 8, 1854, at only thirty-eight years old.Wing rests in the Mexico Village Cemetery, where a monument was erected by the Friends of Freedom, on September 11, 1855, in honor of the orator abolitionist, Asa S Wing. At the ceremony, the guest speaker was Frederick Douglas. Between 2,000-3,000 people gathered to honor Wing. Douglas spoke these words: "He poured out his life for the Pershing slave, pleading for him with an eloquence and earnestness which could scarcely be more direct, pathetic and touching, had his wife and children been on the auction block."',
+                address: '3392 Route 69, Mexico NY 13114',
+                date: new Date('2022-01-01'),
+                Note: 'This is a private home and not open to the public. Drive by only.'
+            },
+            {
+                name: '16. Ard H. Stevens-George Washington Store',
+                image: 'UndergroundRailroadTour/18_Ard_H._Stevens-George_Washington_Store/Photos/Market House.jpg',
+                description: 'Ard H. Stevens was an active abolitionist. George and Lucretia Bakeman Washington, African Americans, later owned this store.',
+                address: '31 Broad St., Pulaski NY 13142',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '17. Site of Toll Booth in the Jerry Henry Rescue',
+                image: 'UndergroundRailroadTour/19_Site_of_Toll_Booth_in_the_Jerry_Henry_Rescue/Photos/2 Pease House Historic Marker.jpg',
+                description: 'Hidden in a butcher’s wagon, Jerry Henry passed along this plank road on his way to Mexico Oswego, NY, and Kingston, Ontario.',
+                address: '431 Route 11, Central Square NY 13036',
+                date: new Date('2022-01-01'),
+                Note: 'Behind Restaurant.'
+            },
+            {
+                name: '18. Hiram and Lucy Gilbert House',
+                image: 'UndergroundRailroadTour/20_Hiram_and_Lucy_Gilbert_House/Photos/2 Pease House Historic Marker.jpg',
+                description: 'Hiram Gilbert (miller, founder of a local academy, and Congressional deacon) assisted fugitives as early as 1837, when the freedom seeker George stayed overnight with his family.',
+                address: '452 Gilbert Mills Road, Schroeppel NY 13135',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '19. Amos and Hannah Mason House',
+                image: 'UndergroundRailroadTour/21_Amos_and_Hannah_Mason_House/Photos/Bristol Hill Resolution.jpg',
+                description: 'These African Americans actively supported the Freedom Trail. In December 1839, Hannah’s son James Watkins Seward, was kidnapped in New Orleans. Oswego County abolitionists successfully lobbied for his release, but in July 1841, he was hung for murder in St. Louis. In his last letter, he wrote that he still held his “Abolitionist opinions” and his “Calvinistic beliefs.”',
+                address: '541 Gilbert Mills Road Phoenix, NY 13135',
+                date: new Date('2022-01-01'),
+                Note: 'Across from Red Schoolhouse Road.'
+            },
+            {
+                name: '20. Stephen and Rhoda Griffith House',
+                image: 'UndergroundRailroadTour/22_Stephen_and_Rhoda_Griffith_House/Photos/2 Pease House Historic Marker.jpg',
+                description: 'Grove Gilbert, son of Hiram Gilbert, remembered that his grandmother told him the story of two African American sisters, one sheltered in the Gilbert house and one in the Griffith house, who were joyfully reunited.',
+                address: 'Gilbert Mills Road, across from Church Road, Phoenix NY 13135',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '21. Gilbert Mills Cemetery',
+                image: 'UndergroundRailroadTour/23_Gilbert_Mills_Cemetery/Photos/2 Pease House Historic Marker.jpg',
+                description: 'Both blacks and whites are buried in this cemetery, including Ammos Mason, an African American member of the Schroeppel Town Vigilance Committee, (d. 1842), and his twin daughters, Helen and Harriet (d. 1841 and 1842)',
+                address: '17-19 Church Road, Phoenix NY 13135',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '22. Bristol Hill Church',
+                image: 'UndergroundRailroadTour/24_Bristol_Hill_Church/Photos/Bristol Hill Church 2004.jpg',
+                image2: 'UndergroundRailroadTour/24_Bristol_Hill_Church/Photos/Bristol Hill HIstoric Marker.jpg',
+                image3: 'UndergroundRailroadTour/24_Bristol_Hill_Church/Photos/Bristol Hill church Black & White members.jpg',
+                image4: 'UndergroundRailroadTour/24_Bristol_Hill_Church/Photos/Bristol Hill Church early 20th century.jpg',
+                image5: 'UndergroundRailroadTour/24_Bristol_Hill_Church/Photos/Bristol Hill National Register Plaque.jpg',
+                image6: 'UndergroundRailroadTour/24_Bristol_Hill_Church/Photos/Bristol Hill Resolution.jpg',
+                description: 'The organization of the First Congregational Church of Volney was effected in June 1812. In April of 1830, the congregation met at Silah Seymours to discuss the site for achurch building. Land was purchased from Anson Sackett in May 1832 and on 13 February 1835 Rev. H.S. Coutton gave the dedication service. The cost of erecting the church on the hill was about $2500. The Federal-style church, built between 1832 and 1835 by a congregation of African Americans and European Americans, stands as an icon of the Underground Railroad in central New York. During early times the church served as a way station on the Underground Railroad. Parishioner Millie Burton wrote a poem about the church, which begins:“Over a hundred years ago upon this very sod, A band of fearless people built a house to worship God.” African-American James W. Seward joined Bristol Hill Church on May 15, 1831. Seward received an education from Gilbert Mills Academy, then traveled to Ohio to educate other African Americans. In 1839, he was kidnapped in New Orleans. Oswego County abolitionists wrote letters for his release. They were successful in setting him free. However, in 1841 he was hanged for robbery and murder in St. Louis with three other African Americans. Before going to the gallows, Seward wrote a letter to abolitionist Gerrit Smith. In it, he reaffirmed his commitment to his ìabolitions opinions and his ìCalvinistic belief. î He wrote: “Do not I beseech you my dear sit (nor) think on me harshly, think anyway of me rather than the cool and deliberate villain (sic) and midnight assassin which some would represent. In all my trials, troubles, and sorrow, I enjoy comfort and pleasure by trusting in God. I feel today that I know that my redeemer lives and because he lives I shall live also. Adieu forever. When you receive this James will be in another and better world.”A copy of the letter remains at the church. Listed on New York State’s Underground Railroad Heritage Trail, the National Register of Historic Places and the National Park Service’s National Underground Railroad Network to Freedom.',
+                address: 'North Side of 3199 Route 3, east of Fulton, Volney NY 13069 North Side of street',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '23. Mt. Pleasant Cemetery',
+                image: 'UndergroundRailroadTour/25_Mt._Pleasant_Cemetery/Photos/Mt Pleasant Aerial.jpg',
+                image2: 'UndergroundRailroadTour/25_Mt._Pleasant_Cemetery/Photos/Mt Pleasant 1906.jpg',
+                description: 'This cemetery contains graves of about four dozen African Americans, including at least one Civil War veteran, Samuel Bakeman.',
+                address: '2825 Co Rt 45, Fulton, NY 13069',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '24. William Baldwin House',
+                image: 'UndergroundRailroadTour/26_William_Baldwin_House/Photos/Baldwin Carriage.jpg',
+                image2: 'UndergroundRailroadTour/26_William_Baldwin_House/Photos/Baldwin House 323 Baldwin Road (2).jpg',
+                image3: 'UndergroundRailroadTour/26_William_Baldwin_House/Photos/Baldwin House 323 Baldwin Rd.jpg',
+                image4: 'UndergroundRailroadTour/26_William_Baldwin_House/Photos/Underground RR Baldwin Farm 2015.jpg',
+                description: 'Baldwin’s granddaughter recalled stories of his participation in the Underground Railroad. The proximity of several African American families, including the Depuys, Slaters, and Lawsons, suggests the possibility of a biracial freedom trail network in this neighborhood.',
+                address: '323 Baldwin Rd, Volney NY 13069',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            {
+                name: '25. Silas Brewster House',
+                image: 'Underground Railroad Tour/29 Silas Brewster House/Photos/2 Pease House Historic Marker.jpg',
+                description: 'Local tradition places Silas Brewster at the heart of freedom trail activities in Hannibal, using his barn to hide freedom seekers. Brewster’s store is now ????',
+                address: '963 Cayuga St., Hannibal NY 13074',
+                Note: 'No notes are necessary for this address.',
+                date: new Date('2022-01-01')
+            },
+            
+            // Add other museum data here...
+        ];
+
+        museums.sort((a, b) => a.date - b.date);
+
+        const museumContainer = document.querySelector('main');
+
+        museums.forEach(museum => {
+            const card = document.createElement('div');
+            card.className = 'museum-card visible';
+            card.onclick = () => openModal(museum);
+
+            card.innerHTML = `
+                <h2>${museum.name}</h2>
+            `;
+
+            museumContainer.appendChild(card);
+        });
+    });
+
+    function openModal(museum) {
+        // Hide other museum cards
+        const museumCards = document.querySelectorAll('.museum-card');
+        museumCards.forEach(card => card.classList.remove('visible'));
+
+        const modal = document.getElementById('myModal');
+        const modalContent = document.getElementById('modalContent');
+
+        modalContent.innerHTML = `
+               <h2>${museum.name}</h2>
+                <p><strong>Address:</strong> ${museum.address}</p>
+                <p><strong>Note:</strong> ${museum.Note}</p>
+               <img src="${museum.image}" alt="${museum.name}">
+               <img src="${museum.image2}" alt="">
+               <img src="${museum.image3}" alt="">
+               <img src="${museum.image4}" alt="">
+               <img src="${museum.image5}" alt="">
+               <img src="${museum.image6}" alt="">
+               <img src="${museum.image7}" alt="">
+               <img src="${museum.image8}" alt="">
+               <img src="${museum.image9}" alt="">
+               <img src="${museum.image10}" alt="">
+               <img src="${museum.image11}" alt="">
+               <img src="${museum.image12}" alt="">
+               <img src="${museum.image13}" alt="">
+
+           <p>${museum.description}</p>
+          `;
+
+
+        modal.style.display = 'block';
+
+        // Close modal when clicking outside the modal content
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        };
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('myModal');
+        modal.style.display = 'none';
+
+        // Show all museum cards
+        const museumCards = document.querySelectorAll('.museum-card');
+        museumCards.forEach(card => card.classList.add('visible'));
+    }
+     // Mapbox Directions
+    document.addEventListener('DOMContentLoaded', function () {
+        const directions = new MapboxDirections({
+            accessToken: mapboxgl.accessToken,
+            unit: 'metric',
+            profile: 'mapbox/driving',
+            interactive: true,
+            controls: {
+                inputs: true,
+                instructions: true,
+                profileSwitcher: false
+            }
+        });
+    
+
+        map.addControl(directions, 'top-left');
+    });
+</script>
+</body>
+</html>

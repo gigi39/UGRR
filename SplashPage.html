@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Splash Page</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to your existing styles.css file -->
+    <style>
+        /* Additional CSS specific to the homepage */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            /*background-color: #f5f5f5;*/
+            color: #333;
+            background-image: url('/UndergroundRailroadTour/7_Harbor_as_Seen_from_Fort_Ontario/Photos/Oswego Harbor View 1855.jpg ');
+            background-repeat: no-repeat;
+      }
+
+        header {
+            background-color: #ADD8ed;
+            color: black;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        #logo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            max-width: 100px;
+            height: auto;
+        }
+
+        .topnav {
+            text-align: center;
+            margin-top: 20px;
+        }
+  		.topnav a {
+      	display:flex;
+      	text-decoration: none;
+      	color: #333;
+     	 padding: 10px 20px;
+     	 margin: auto;
+      	border: 1px solid #333;
+     	 border-radius: 5px;
+      	background-color: #fff;
+      	transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+     	 font-size: 17px;
+      	width: 50vw;
+      	justify-content: center;
+  }
+
+
+        .topnav a:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        main {
+            padding: 20px;
+            text-align: justify;
+        }
+
+        section {
+            margin-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            width: 100%; /* Set the width to 100% */
+        }
+
+        .card {
+            box-sizing: border-box;
+            width: calc(30% - 20px);
+            margin-bottom: 30px;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card p {
+            margin: 0 0 10px;
+        }
+
+        /* Form styles */
+        form {
+            margin-top: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        /* Contact section styles */
+        .contact-section {
+            background-color: #333;
+            color: #fff;
+            padding: 30px 0;
+        }
+
+        .contact-info {
+            text-align: center;
+        }
+
+        .contact-info p {
+            margin: 10px 0;
+        }
+
+     
+        footer {
+            text-align: center;
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+        } 
+	
+      @media screen and (max-width: 480px) {
+  		.card{
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+          
+          
+        }
+        
+  		}
+    </style>
+  	 <script>
+     function myFunction() {
+     var x = document.getElementById("myTopnav");
+    if (x.className === "topnav") {
+      x.className += " responsive";
+    } else {
+      x.className = "topnav";
+     }
+   }
+  </script>
+</head>
+<body>
+
+<header>
+    <img id="logo" src="logo.png" alt="Logo">
+    <h1>Explore more Historical Sites</h1>
+</header>
+
+<div class="topnav" id="myTopnav">
+  <a href = "index.html"> Home </a>
+      <a href="MuseumTimeline.html"> Sites </a>
+      <a href="r_index.html">Reviews</a>
+      <a href="SplashPage.html"> More Information </a>
+      <a href="https://ochs.teamvtechnology.com/contact-us/">Contact</a>
+   </div>
+  
+<main>
+    <!-- Links to historical sites as a section -->
+    <section>
+        
+        <div class="card">
+            <h3>New York Heritage</h3>
+            <p>New York Heritage is a platform that hosts and provides access to a wide range of digital collections and cultural heritage materials related to the state of New York.These collections include photographs, manuscripts, historical documents, maps, and more, contributed by cultural institutions throughout New York State. </p>
+            <a href="https://nyheritage.org/">Explore</a>
+        </div>
+        <div class="card">
+            <h3>RICHARDSON-BATES House</h3>
+            <p>Through displays and educational events, the historical Richard-Bates House provides a peek into the lifestyle of a significant and wealthy Oswego family, as well as the people and places in Oswego County. This location is an old Italian villa from the 19th century that would be a beautiful spot to visit. </p>
+            <a href="https://www.rbhousemuseum.org/">Explore</a>
+        </div>
+        <div class="card">
+            <h3>THE LIFE OF DR. MARY EDWARDS WALKER</h3>
+            <p>THE LIFE OF
+                DR. MARY EDWARDS WALKER
+                Civil War Surgeon, Abolitionist, Suffragist, Dress Reformer and only female Medal of Honor recipient
+                </p>
+            <a href="https://oswegohistory.tours/">Explore</a>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2024 Amanuel Yohannes, Gerald Anakwa and Damani Johnson. All rights reserved.</p>
+</footer>
+
+</body>
+</html>

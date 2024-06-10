@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Locate the user</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.1/mapbox-gl-directions.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .mapboxgl-ctrl-directions { 
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px;
+        }
+
+        .button {
+            position: absolute;
+            bottom: 40px;
+            padding: 20px;
+            font-family: 'Times New Roman', 'Times New Roman', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+            font-size: 20px;
+            cursor: pointer;
+            border-radius: 150px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .exit-button {
+            right: 150px;
+            background-color: red;
+            color: white;
+        }
+
+        .finish-button {
+            right: 20px;
+            background-color: deepskyblue;
+            color: white;
+        }
+
+
+        @media (max-width: 600px){
+            .mapboxgl-ctrl-directions.mapboxgl-ctrl {
+                background-color: #fefefe;
+                line-height: 140%;
+                font-size: 60%;
+            }
+
+            .button {
+                position: absolute;
+                bottom: 20px;
+                font-size: 18px;
+                border-radius: 100px;
+            }
+
+            .exit-button {
+                left: 20px;
+                right: unset;
+            }
+        }
+
+    </style>
+
+</head>
+<body>
+<div id="map"></div>
+
+
+<script>
+
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZ2FuYWt3YSIsImEiOiJjbHUzNzh3OHgwdDRkMmlvM2hhMzFreXRzIn0.BW1tK8MAdI5Gb88kVgXfvQ';
+
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/mapbox/streets-v12', 
+        center: [43.452374072187695, -76.54285088483364], 
+        zoom: 2 
+    });
+
+    const bounds = [
+        [-78, 41],
+        [-74, 45]
+    ];
+
+    const sites = [
+
+        {
+            name: "Daniel and Miriam Pease House",
+            color: 'green',
+            confirmationText: "This is a private home and 2 open to the public. Drive by only.",
+            lngLat: [-76.55065542947133, 43.425349995889405],
+        },
+       
+        
+    ]
+
+    sites.forEach(({ name, color, lngLat }) => {
+        
+        const popup = new mapboxgl.Popup({offset: 25}).setText(name);
+
+        
+        const marker = new mapboxgl.Marker({
+            color,
+            scale: 1.0
+        })
+                .setLngLat(lngLat)
+                .setPopup(popup)
+                .addTo(map);
+    });
+
+    // Initialize the geolocate control.
+    const geolocate = new mapboxgl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+    });
+
+    
+    map.addControl(geolocate);
+
+    map.on('load', () => {
+        geolocate.trigger();
+    });
+
+    
+    geolocate.on('outofmaxbounds', () => {
+        alert.log('You are out of bounds!');
+        window.location.href = "index.html";
+    });
+
+
+    map.addControl(  
+     new MapboxDirections({  
+    accessToken: mapboxgl.accessToken  
+    }),  
+    'top-left' 
+    )
+    
+    const directions = new MapboxDirections({
+        accessToken: mapboxgl.accessToken,
+        profile: 'mapbox/driving',
+        interactive: false,
+        controls: {
+            inputs: false,
+            instructions: true,
+            profileSwitcher: true,
+            attributionControl: false
+        }
+    });
+
+    // Add the directions control to the map (top-left)
+    map.addControl(directions, 'left');
+
+    // get the index of the selected site from local storage
+    let siteIndex = JSON.parse(localStorage.getItem('index'));
+
+    geolocate.on('geolocate', function(e) {
+        const userLocation = [e.coords.longitude, e.coords.latitude];
+        directions.setOrigin(userLocation);
+        map.flyTo({
+            center: userLocation,
+            zoom: 12,
+            essential: true
+        });
+        map.setMaxBounds(bounds);
+
+        directions.setDestination(sites[siteIndex].lngLat);
+    });
+
+    // Redirect when user exit map
+    const exitButton = document.getElementById('exitButton');
+
+    exitButton.addEventListener('click', () => {
+        window.location.href = 'freeexploration.html';
+        localStorage.clear();
+    });
+
+    // Confirm if user has arrived at destination
+    const finishButton = document.getElementById('finishButton');
+
+    finishButton.addEventListener('click', () => {
+
+        let address;
+
+        const url = "https://api.mapbox.com/geocoding/v5/mapbox.places/" + sites[siteIndex].lngLat[0]
+                + "," + sites[siteIndex].lngLat[1] + ".json?access_token=" +
+                mapboxgl.accessToken + "&types=address";
+
+        fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    address = data.features[0].place_name;
+                    let confirmationText = sites[siteIndex].confirmationText;
+
+                    const userConfirmation = confirm(`Are you at ${address}? \n${confirmationText}`);
+                    if (userConfirmation) {
+                        window.location.href = sites[siteIndex].redirectLink;
+                        localStorage.clear();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+    });
+
+</script>
+
+</body>
+</html>
